@@ -14,6 +14,12 @@ class FixtureService extends Service
         parent::__construct($repository);
     }
 
+
+    public function isFixtureGenerated(): bool
+    {
+        return $this->repository->isFixtureGenerated();
+    }
+
     /**
      * Lig fixture yaratmak için Round Robin Algoritmasını Kullanalım.
      * Bu sayede her takım her hafta farklı bir takımla oynar.
@@ -116,12 +122,17 @@ class FixtureService extends Service
 
     public function getAllWeeksMatches(): array
     {
-        return stdToArray($this->repository->getAllWeekMatches());
+        $matches = $this->repository->getAllWeekMatches();
+        return stdToArray($matches->groupBy('week'));
     }
 
     public function getNextWeekMatches(): array
     {
         return stdToArray($this->repository->getAllWeekMatches(true));
+    }
+    public function getLastWeekMatches(): array
+    {
+        return stdToArray( $this->repository->getLastWeekMatches());
     }
 
     private function simulateWeekGame($weekGame, bool $is_simulation = false): bool

@@ -9,11 +9,16 @@ class LeagueService extends Service
 {
     public Collection $teams;
 
+    public Collection $games;
+    public FixtureService $fixtureService;
+
     public Collection $playedMatches;
 
     public function __construct(TeamRepository $repository)
     {
         parent::__construct($repository);
+
+        $this->fixtureService = new FixtureService($this->repository);
     }
 
     /**
@@ -32,10 +37,8 @@ class LeagueService extends Service
     public function getPrediction(): Collection
     {
         $this->getLeague();
-
-        $fixtureService = new FixtureService($this->repository);
-        $fixtureService->simulateNextMatches();
-        $this->playedMatches = $fixtureService->games;
+        $this->fixtureService->simulateNextMatches();
+        $this->playedMatches = $this->fixtureService->games;
         $this->calculateLeague();
         return $this->calculatePrediction();
     }
@@ -43,6 +46,14 @@ class LeagueService extends Service
     private function calculatePrediction(): Collection
     {
         $totalPoints = $this->teams->sum('points');
+        if ($totalPoints === 0) {
+            return $this->teams;
+        }
+        if ($this->playedMatches->count() < 1)
+        {
+             $this->teams->sortBy([['points', 'desc'], ['avarage', 'desc']])->first()->prediction = 100;
+             return $this->teams;
+        }
         foreach ($this->teams as $team) {
             $team->prediction = round(($team->points / $totalPoints) * 100, 2);
             $this->teams->put($team->id, $team);
@@ -68,6 +79,8 @@ class LeagueService extends Service
             $homeTeam->score_against += $playedMatch->away_team_score;
             $awayTeam->score_for += $playedMatch->away_team_score;
             $awayTeam->score_against += $playedMatch->home_team_score;
+            $homeTeam->avarage += ($playedMatch->home_team_score - $playedMatch->away_team_score);
+            $awayTeam->avarage += ($playedMatch->away_team_score - $playedMatch->home_team_score);
             $homeTeam->played += 1;
             $awayTeam->played += 1;
 
@@ -108,6 +121,7 @@ class LeagueService extends Service
             $team->points = 0;
             $team->played = 0;
             $this->teams->put($team->id, $team);
+            $team->avarage = 0;
         }
     }
 }

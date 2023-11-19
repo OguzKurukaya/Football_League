@@ -27,7 +27,7 @@ class LeagueController
                 'flag' => 'success',
                 'code' => 200,
                 'message' => 'League retrieved',
-                'data' => $service->teams
+                'data' => $service->teams->sortBy([['points', 'desc'], ['avarage', 'desc']])->values()
             ]
         );
     }

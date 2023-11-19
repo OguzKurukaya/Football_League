@@ -13,6 +13,17 @@ class FixtureController
     public function generateFixture(FixtureService $service): JsonResponse
     {
 
+        if ($service->isFixtureGenerated())
+        {
+            return response()->json(
+                [
+                    'flag' => 'error',
+                    'code' => 500,
+                    'message' => 'Fixture already generated'
+                ]
+            );
+        }
+
         if (!$service->generateFixture()) {
             return response()->json(
                 [
@@ -83,14 +94,29 @@ class FixtureController
 
     public function getNextWeekMatches(FixtureService $service): JsonResponse
     {
+        $matches = $service->getNextWeekMatches();
+        if (count($matches) >0) {
+            return response()->json(
+                [
+                    'flag' => 'success',
+                    'code' => 200,
+                    'type' => 'next_week_matches',
+                    'message' => 'Next Week Matches Here',
+                    'data' => $matches
+                ]
+            );
+        }
+
         return response()->json(
             [
                 'flag' => 'success',
                 'code' => 200,
-                'message' => 'All Week played',
-                'data' => $service->getNextWeekMatches()
+                'type' => 'last_week_matches',
+                'message' => 'This is Last Week',
+                'data' => $service->getLastWeekMatches()
             ]
         );
+
     }
 
     public function editMatch(Request $request, FixtureService $service): JsonResponse
