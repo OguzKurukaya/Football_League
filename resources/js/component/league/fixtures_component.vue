@@ -1,6 +1,9 @@
 <template>
     <div class="container">
         <div class="row" v-if="matchCount > 0">
+            <div class="text-center">
+                <h4>You can make changes by clicking on the score you want to change.</h4>
+            </div>
             <div class="col-md-4" v-for="(match, index) in matches">
                 <fixture_page_component
                     :matches=match :week=index
